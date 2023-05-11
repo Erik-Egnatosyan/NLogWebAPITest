@@ -1,3 +1,4 @@
+using FluentAssertions.Common;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 using NLogWebAPITest.Models;
@@ -12,7 +13,6 @@ internal class Program
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-
 
         builder.Logging.ClearProviders();
         builder.WebHost.UseNLog();

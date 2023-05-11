@@ -10,6 +10,13 @@ namespace NLogWebAPITest.Controller
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private readonly NLogDBContext _dbContext;
+
+        public UsersController(NLogDBContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
         [HttpPost("Create")]
         public async Task<ActionResult> CreateUser([FromBody] User user)
         {
@@ -21,13 +28,12 @@ namespace NLogWebAPITest.Controller
             }
         }
 
+
         [HttpGet("Read")]
-        public IEnumerable<User> GetUsers()
+        public async Task<ActionResult> GetUsers()
         {
-            using (var context = new NLogDBContext())
-            {
-                return context.Users.ToList();
-            }
+           var result = await _dbContext.Users.ToListAsync();
+            return Ok(result);
         }
 
         [HttpGet("CheckDBConnection")] // атрибут для маршрутизации HTTP GET-запроса по адресу "api/CheckDBConnection"
