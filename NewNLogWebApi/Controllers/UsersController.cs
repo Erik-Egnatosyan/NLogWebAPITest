@@ -70,10 +70,32 @@ namespace NewNLogWebApi.Controllers
                 return BadRequest($"Ошибка при создании таблицы: {ex.Message}");
             }
         }
-        [HttpPost("AddUser")]
-        public async Task<IActionResult> AddUserWithData()
+        [HttpPost("AddUsers")]
+        public async Task<ActionResult<string>> AddUserWithData()
         {
-                
+            User userModel = CreateUserModel("Erik", "Egnatosyan", "erikegn@mail.com", "+87987546546", "Pushkinskiy", 30);
+            try
+            {
+                _context.Users.Add(userModel);
+                await _context.SaveChangesAsync();
+                return Ok("User added successfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Error adding user: {ex.Message}");
+            }
+        }
+        public static User CreateUserModel(string FirstName,  string LastName, string Email, string Phone, string Address, int Age)
+        {
+            return new User
+            {
+                FirstName = FirstName,
+                LastName = LastName,
+                Email = Email,
+                Phone = Phone,
+                Address = Address,
+                Age = Age
+            };
         }
     }
 }
