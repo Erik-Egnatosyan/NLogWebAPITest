@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NewNLogWebApi.Models;
 using NewNLogWebApi.Service;
-using NLog;
 
 namespace NewNLogWebApi.Controllers
 {
@@ -68,14 +67,27 @@ namespace NewNLogWebApi.Controllers
         }
 
         [HttpGet("AVG_Age")]
-        public async Task<ActionResult> Get3()
+        public async Task<ActionResult> AverageAge()
         {
-            var users = await _context.Users.ToListAsync();
-            if (users == null) { _logger.LogWarning("Запрошенный пользователь не найден"); return NotFound(); }
+            try
+            {
+                var result = await _userService.AverageAge();
+                if (result == 0)
+                {
+                    throw new Exception("Данные не найдены");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
 
-            var averageAge = users.Average(user => user.Age);
-
-            return Ok(averageAge);
+                _logger.LogWarning(ex.Message);
+                return new NotFoundObjectResult(new
+                {
+                    Status = 404,
+                    Message = "Not Found"
+                });
+            }
         }
 
         //------------------------END-READ------------------------
@@ -85,9 +97,8 @@ namespace NewNLogWebApi.Controllers
         {
             try
             {
-                string query = "Create table MyTable (id int PRIMARY KEY, name varchar(50))";
-                await _context.Database.ExecuteSqlRawAsync(query);
-                return Ok("Таблица успешно создана!");
+                var result = await _userService.CreateTable();
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -98,13 +109,10 @@ namespace NewNLogWebApi.Controllers
         [HttpPost("AddUsers")]
         public async Task<ActionResult<string>> AddUserWithData()
         {
-            //User userModel = CreateUserModel("Erik", "Egnatosyan", "erikegn@mail.com", "+87987546546", "Pushkinskiy", 30);
-            User userModel = CreateUserModel("Erik", "Nalbandyan", "eriknalb@mail.com", "+87987546546", "Pushkinskiy", 17);
             try
             {
-                _context.Users.Add(userModel);
-                await _context.SaveChangesAsync();
-                return Ok("User added successfully!");
+                var result = await _userService.AddUserWithData();
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -112,18 +120,7 @@ namespace NewNLogWebApi.Controllers
                 return BadRequest($"Error adding user: {ex.Message}");
             }
         }
-        public static User CreateUserModel(string FirstName,  string LastName, string Email, string Phone, string Address, int Age)
-        {
-            return new User
-            {
-                FirstName = FirstName,
-                LastName = LastName,
-                Email = Email,
-                Phone = Phone,
-                Address = Address,
-                Age = Age
-            };
-        }
+
         //-----------------------END-CREATE-----------------------
         //---------------------PUT-AND-PATCH----------------------
         [HttpPut("ChangeInformation")]
@@ -169,12 +166,12 @@ namespace NewNLogWebApi.Controllers
                 _logger.LogError(ex, "Error updating user");
                 return BadRequest($"Error updating user: {ex.Message}");
             }
-        //operationType: целое число, которое определяет тип операции (0 - add, 1 - remove, 2 - replace, 3 - move, 4 - copy, 5 - test).
-        //path: строка, которая указывает на путь к свойству, которое нужно изменить.
-        //op: строка, которая определяет тип операции(add, remove, replace, move, copy, test).
-        //from: строка, которая указывает на исходное положение свойства при операции move или copy.
-        //value: значение, на которое нужно заменить свойство при операции replace или add.
-        //[  {    "operationType": 2,    "path": "/FirstName",    "op": "replace",    "value": "John"  }]
+            //operationType: целое число, которое определяет тип операции (0 - add, 1 - remove, 2 - replace, 3 - move, 4 - copy, 5 - test).
+            //path: строка, которая указывает на путь к свойству, которое нужно изменить.
+            //op: строка, которая определяет тип операции(add, remove, replace, move, copy, test).
+            //from: строка, которая указывает на исходное положение свойства при операции move или copy.
+            //value: значение, на которое нужно заменить свойство при операции replace или add.
+            //[  {    "operationType": 2,    "path": "/FirstName",    "op": "replace",    "value": "John"  }]
         }
         //-------------------END-PUT-AND-PATCH--------------------
         //-------------------------DELETE-------------------------

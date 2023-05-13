@@ -6,5 +6,8 @@ namespace NewNLogWebApi.Service
     {
         Task<List<User>> GetUsers();
         Task<List<string>> GetAllNames();
+        Task<double> AverageAge();
+        Task<string> CreateTable();
+        Task<string> AddUserWithData();
     }
 }
