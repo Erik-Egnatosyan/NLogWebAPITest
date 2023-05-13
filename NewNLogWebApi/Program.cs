@@ -8,7 +8,7 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddControllers(); //Обязательно нужно добавить для того чтобы иметь доступ к контролеру
+        builder.Services.AddControllers().AddNewtonsoftJson(); //Обязательно нужно добавить для того чтобы иметь доступ к контролеру
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
