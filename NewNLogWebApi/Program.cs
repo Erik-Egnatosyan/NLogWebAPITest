@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NewNLogWebApi.Models;
+using NewNLogWebApi.Service;
 using NLog.Web;
 
 internal class Program
@@ -14,6 +15,11 @@ internal class Program
 
         builder.Services.AddDbContext<UsersContext>(
         options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        //builder.Services.AddDbContext<UsersContext>(x =>
+        //{
+        //    x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+        //});
+        builder.Services.AddTransient<IUserService, UserService>(); //Нужен для имплементации -> Dependency injection
 
         builder.Logging.ClearProviders();
         builder.WebHost.UseNLog();

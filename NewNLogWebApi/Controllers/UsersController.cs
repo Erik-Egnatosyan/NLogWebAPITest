@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NewNLogWebApi.Models;
+using NewNLogWebApi.Service;
 using NLog;
 
 namespace NewNLogWebApi.Controllers
@@ -12,35 +13,60 @@ namespace NewNLogWebApi.Controllers
     {
         private readonly UsersContext _context;
         private readonly ILogger<UsersController> _logger;
-
-        public UsersController(ILogger<UsersController> logger, UsersContext context)
+        private readonly IUserService _userService;
+        public UsersController(ILogger<UsersController> logger, UsersContext context, IUserService userService)
         {
             _logger = logger;
             _context = context;
+            _userService = userService;
         }
         //--------------------------READ--------------------------
         [HttpGet("Read")]
-        public async Task<ActionResult> GetUsers()
+        public async Task<IActionResult> GetUsers()
         {
-            var users = await _context.Users.ToListAsync();
-            if (users == null) { _logger.LogWarning("Запрошенный пользователь не найден"); return NotFound(); }
-            return Ok(users);
+            try
+            {
+                var result = await _userService.GetUsers();
+                if (result == null)
+                {
+                    throw new Exception("Ползователи не найдены");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex.Message);
+                return new NotFoundObjectResult(new
+                {
+                    Status = 404,
+                    Message = "Not Found"
+                });
+            }
         }
 
         [HttpGet("GetOnlyNames")]
-        public async Task<IActionResult> Get2()
+        public async Task<IActionResult> GetAllNames()
         {
-            var users = await _context.Users.ToListAsync();
-            if (users == null) { _logger.LogWarning("Запрошенный пользователь не найден"); return NotFound(); }
-
-            var names = new List<string>();
-            foreach (var user in users)
+            try
             {
-                names.Add(user.FirstName);
+                var result = await _userService.GetAllNames();
+                if (result == null)
+                {
+                    throw new Exception("Данные не найдены");
+                }
+                return Ok(result);
             }
-
-            return Ok(names);
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex.Message);
+                return new NotFoundObjectResult(new
+                {
+                    Status = 404,
+                    Message = "Not Found"
+                });
+            }
         }
+
         [HttpGet("AVG_Age")]
         public async Task<ActionResult> Get3()
         {
@@ -59,7 +85,7 @@ namespace NewNLogWebApi.Controllers
         {
             try
             {
-                string query = "Creat4e table MyTable (id int PRIMARY KEY, name varchar(50))";
+                string query = "Create table MyTable (id int PRIMARY KEY, name varchar(50))";
                 await _context.Database.ExecuteSqlRawAsync(query);
                 return Ok("Таблица успешно создана!");
             }
@@ -175,7 +201,7 @@ namespace NewNLogWebApi.Controllers
             }
         }
         [HttpDelete("DeleteTable")]
-        public async Task<ActionResult> DeleteTable()
+        public async Task<ActionResult> DropTable()
         {
             try
             {
@@ -193,7 +219,7 @@ namespace NewNLogWebApi.Controllers
         {
             try
             {
-                string query = "DELETE FROM Logs";
+                string query = "Truncate table Logs";
                 await _context.Database.ExecuteSqlRawAsync(query);
                 return Ok("Все строки из таблицы успешно удалены!");
             }
