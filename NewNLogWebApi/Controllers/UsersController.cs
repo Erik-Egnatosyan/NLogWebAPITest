@@ -34,12 +34,8 @@ namespace NewNLogWebApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex.Message);
-                return new NotFoundObjectResult(new
-                {
-                    Status = 404,
-                    Message = "Not Found"
-                });
+                _logger.LogError(ex.Message);
+                throw new Exception(ex.Message);
             }
         }
 
@@ -57,12 +53,8 @@ namespace NewNLogWebApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex.Message);
-                return new NotFoundObjectResult(new
-                {
-                    Status = 404,
-                    Message = "Not Found"
-                });
+                _logger.LogError(ex.Message);
+                throw new Exception(ex.Message);
             }
         }
 
@@ -80,13 +72,8 @@ namespace NewNLogWebApi.Controllers
             }
             catch (Exception ex)
             {
-
-                _logger.LogWarning(ex.Message);
-                return new NotFoundObjectResult(new
-                {
-                    Status = 404,
-                    Message = "Not Found"
-                });
+                _logger.LogError(ex.Message);
+                throw new Exception(ex.Message);
             }
         }
 
@@ -108,7 +95,7 @@ namespace NewNLogWebApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return BadRequest($"Ошибка при создании таблицы: {ex.Message}");
+                throw new Exception(ex.Message);
             }
         }
 
@@ -127,7 +114,7 @@ namespace NewNLogWebApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return BadRequest($"Ошибка при добовлении ползователья: {ex.Message}");
+                throw new Exception(ex.Message);
             }
         }
 
@@ -149,7 +136,7 @@ namespace NewNLogWebApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return BadRequest($"Не удалось изменить имя пользователя: {ex.Message}");
+                throw new Exception(ex.Message);
             }
         }
 
@@ -168,7 +155,7 @@ namespace NewNLogWebApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return BadRequest($"Не удалось изменить имя ползователя!: {ex.Message}");
+                throw new Exception(ex.Message);
             }
             //operationType: целое число, которое определяет тип операции (0 - add, 1 - remove, 2 - replace, 3 - move, 4 - copy, 5 - test).
             //path: строка, которая указывает на путь к свойству, которое нужно изменить.
@@ -189,14 +176,15 @@ namespace NewNLogWebApi.Controllers
                 var result = await _userService.Delete(id);
                 if (result == null)
                 {
-                    throw new Exception($"Не удалось удалить пользователя по {id}");
+                    throw new Exception($"Не найден ползоваетль под номером {id}");
                 }
-                return Ok("User deleted successfully!");
+                //return Ok("User deleted successfully!");
+                return Ok(new { message = "User deleted successfully", data = result });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return BadRequest($"Не удалось удалить пользователя по {id}: {ex.Message}");
+                throw new Exception(ex.Message);
             }
         }
 
@@ -214,8 +202,8 @@ namespace NewNLogWebApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при удалении таблицы");
-                return BadRequest($"Ошибка при удалении таблицы: {ex.Message}");
+                _logger.LogError(ex.Message);
+                throw new Exception(ex.Message);
             }
         }
 
@@ -234,7 +222,7 @@ namespace NewNLogWebApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return BadRequest($"Ошибка при удалении всех строк из таблицы: {ex.Message}");
+                throw new Exception(ex.Message);
             }
         }
         //-----------------------END-DELETE-----------------------

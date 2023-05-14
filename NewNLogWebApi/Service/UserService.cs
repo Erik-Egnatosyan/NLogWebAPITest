@@ -114,14 +114,19 @@ namespace NewNLogWebApi.Service
             }
         }
 
-        public async Task<string> Delete(int id)
+        public async Task<User> Delete(int id)
         {
             try
             {
                 var user = await _context.Users.FindAsync(id);
+                //var user = await _context.Users.Where(x => x.Id == id).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    return null;
+                }
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
-                return "User deleted successfully!";
+                return user;
             }
             catch (Exception ex)
             {
@@ -151,7 +156,7 @@ namespace NewNLogWebApi.Service
         {
             try
             {
-                await _context.Database.ExecuteSqlRawAsync("DROP TABLE Users");
+                await _context.Database.ExecuteSqlRawAsync("DROP TABLE MyTable");
                 return "Таблица успешно удалена!";
             }
             catch (Exception ex)

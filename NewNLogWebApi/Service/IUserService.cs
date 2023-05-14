@@ -13,7 +13,7 @@ namespace NewNLogWebApi.Service
         Task<string> AddUserWithData();
         Task<string> ChangeNameWithPut(int id, string newName);
         Task<string> ChangeUserName(int id, [FromBody] JsonPatchDocument<User> patchDoc);
-        Task<string> Delete(int id);
+        Task<User> Delete(int id);
         Task<string> DropTable();
         Task<string> DeleteAllRowsFromLogs();
     }
