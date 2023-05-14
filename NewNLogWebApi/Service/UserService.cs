@@ -1,5 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NewNLogWebApi.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace NewNLogWebApi.Service
 {
@@ -15,16 +18,19 @@ namespace NewNLogWebApi.Service
         {
             try
             {
-            User userModel = CreateUserModel("Erik", "Nalbandyan", "eriknalb@mail.com", "+87987546546", "Pushkinskiy", 17);
+                User userModel = CreateUserModel("Erik", "Nalbandyan", "eriknalb@mail.com", "+87987546546", "Pushkinskiy", 17);
+                if (userModel is null)
+                {
+                    throw new ArgumentNullException(nameof(userModel), "User model cannot be null.");
+                }
                 _context.Users.Add(userModel);
                 await _context.SaveChangesAsync();
                 return "User added successfully!";
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
-            }      
+                throw new Exception(ex.Message);
+            }
             User CreateUserModel(string FirstName, string LastName, string Email, string Phone, string Address, int Age)
             {
                 return new User
@@ -51,13 +57,102 @@ namespace NewNLogWebApi.Service
             return averageAge;
         }
 
+        public async Task<string> ChangeNameWithPut(int id, string newName)
+        {
+            var user = await _context.Users.FindAsync(id);
+
+            user.FirstName = newName;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return "User name updated successfully!";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<string> ChangeUserName(int id, [FromBody] JsonPatchDocument<User> patchDoc)
+        {
+            try
+            {
+                if (patchDoc == null)
+                {
+                    throw new ArgumentNullException(nameof(patchDoc));
+                }
+                var user = await _context.Users.FindAsync(id);
+
+                patchDoc.ApplyTo(user);
+
+                await _context.SaveChangesAsync();
+
+                return "User name updated successfully!";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public async Task<string> CreateTable()
         {
             try
             {
                 string query = "Create table MyTable (id int PRIMARY KEY, name varchar(50))";
+                if (string.IsNullOrWhiteSpace(query))
+                {
+                    throw new ArgumentNullException(nameof(query));
+                }
                 await _context.Database.ExecuteSqlRawAsync(query);
                 return "Таблица успешно создана!";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<string> Delete(int id)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(id);
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+                return "User deleted successfully!";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<string> DeleteAllRowsFromLogs()
+        {
+            try
+            {
+                string query = "Truncate table Logs";
+                if (string.IsNullOrWhiteSpace(query))
+                {
+                    throw new ArgumentNullException(nameof(query));
+                }
+                await _context.Database.ExecuteSqlRawAsync(query);
+                return "Все строки из таблицы успешно удалены!";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<string> DropTable()
+        {
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync("DROP TABLE Users");
+                return "Таблица успешно удалена!";
             }
             catch (Exception ex)
             {
@@ -90,12 +185,19 @@ namespace NewNLogWebApi.Service
 
         public async Task<List<User>> GetUsers()
         {
-            var users = await _context.Users.ToListAsync();
-            if (users == null)
+            try
             {
-                return null;
+                var users = await _context.Users.ToListAsync();
+                if (users == null)
+                {
+                    return null;
+                }
+                return users;
             }
-            return users;
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

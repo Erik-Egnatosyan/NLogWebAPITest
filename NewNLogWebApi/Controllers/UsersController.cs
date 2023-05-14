@@ -20,7 +20,7 @@ namespace NewNLogWebApi.Controllers
             _userService = userService;
         }
         //--------------------------READ--------------------------
-        [HttpGet("Read")]
+        [HttpGet("GetUsers")]
         public async Task<IActionResult> GetUsers()
         {
             try
@@ -28,7 +28,7 @@ namespace NewNLogWebApi.Controllers
                 var result = await _userService.GetUsers();
                 if (result == null)
                 {
-                    throw new Exception("Ползователи не найдены");
+                    throw new Exception("Ползователи не найдены!");
                 }
                 return Ok(result);
             }
@@ -43,7 +43,7 @@ namespace NewNLogWebApi.Controllers
             }
         }
 
-        [HttpGet("GetOnlyNames")]
+        [HttpGet("GetAllNames")]
         public async Task<IActionResult> GetAllNames()
         {
             try
@@ -74,7 +74,7 @@ namespace NewNLogWebApi.Controllers
                 var result = await _userService.AverageAge();
                 if (result == 0)
                 {
-                    throw new Exception("Данные не найдены");
+                    throw new Exception("Данные по возростам не найдены!");
                 }
                 return Ok(result);
             }
@@ -92,79 +92,83 @@ namespace NewNLogWebApi.Controllers
 
         //------------------------END-READ------------------------
         //-------------------------CREATE-------------------------
+
         [HttpPost("CreateTable")]
         public async Task<IActionResult> CreateTable()
         {
             try
             {
                 var result = await _userService.CreateTable();
+                if (result == null)
+                {
+                    throw new Exception("Ошибка при создании таблицы!");
+                }
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при создании таблицы");
+                _logger.LogError(ex.Message);
                 return BadRequest($"Ошибка при создании таблицы: {ex.Message}");
             }
         }
+
         [HttpPost("AddUsers")]
         public async Task<ActionResult<string>> AddUserWithData()
         {
             try
             {
                 var result = await _userService.AddUserWithData();
+                if (result == null)
+                {
+                    throw new Exception("Ошибка при добовлении ползователья");
+                }
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding user");
-                return BadRequest($"Error adding user: {ex.Message}");
+                _logger.LogError(ex.Message);
+                return BadRequest($"Ошибка при добовлении ползователья: {ex.Message}");
             }
         }
 
         //-----------------------END-CREATE-----------------------
         //---------------------PUT-AND-PATCH----------------------
+
         [HttpPut("ChangeInformation")]
-        public async Task<ActionResult<string>> ChangeNameWithPut(int id, string newName)
+        public async Task<IActionResult> ChangeNameWithPut(int id, string newName)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                _logger.LogWarning("Запрошенный пользователь не найден");
-                return NotFound();
-            }
-
-            user.FirstName = newName;
-
             try
             {
-                await _context.SaveChangesAsync();
-                return Ok("User name updated successfully!");
+                var result = await _userService.ChangeNameWithPut(id, newName);
+                if (result == null)
+                {
+                    throw new Exception("Не удалось изменить имя пользователя");
+                }
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating user name");
-                return BadRequest($"Error updating user name: {ex.Message}");
+                _logger.LogError(ex.Message);
+                return BadRequest($"Не удалось изменить имя пользователя: {ex.Message}");
             }
         }
+
         [HttpPatch("users/{id}/changename")]
         public async Task<IActionResult> ChangeUserName(int id, [FromBody] JsonPatchDocument<User> patchDoc)
         {
             try
             {
-                var user = await _context.Users.FindAsync(id);
-
-                if (user == null) { _logger.LogWarning("Запрошенный пользователь не найден"); return NotFound(); }
-
-                patchDoc.ApplyTo(user);
-
-                await _context.SaveChangesAsync();
-
-                return Ok(user);
+                var result = await _userService.ChangeUserName(id, patchDoc);
+                if (result == null) 
+                {
+                    throw new Exception("Не удалось изменить имя ползователя!");
+                }
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating user");
-                return BadRequest($"Error updating user: {ex.Message}");
+                _logger.LogError(ex.Message);
+                return BadRequest($"Не удалось изменить имя ползователя!: {ex.Message}");
             }
             //operationType: целое число, которое определяет тип операции (0 - add, 1 - remove, 2 - replace, 3 - move, 4 - copy, 5 - test).
             //path: строка, которая указывает на путь к свойству, которое нужно изменить.
@@ -173,36 +177,39 @@ namespace NewNLogWebApi.Controllers
             //value: значение, на которое нужно заменить свойство при операции replace или add.
             //[  {    "operationType": 2,    "path": "/FirstName",    "op": "replace",    "value": "John"  }]
         }
+
         //-------------------END-PUT-AND-PATCH--------------------
         //-------------------------DELETE-------------------------
+
         [HttpDelete("DeleteUserById/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                _logger.LogWarning("Запрошенный пользователь не найден");
-                return NotFound();
-            }
-
             try
             {
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
+                var result = await _userService.Delete(id);
+                if (result == null)
+                {
+                    throw new Exception($"Не удалось удалить пользователя по {id}");
+                }
                 return Ok("User deleted successfully!");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting user");
-                return BadRequest($"Error deleting user: {ex.Message}");
+                _logger.LogError(ex.Message);
+                return BadRequest($"Не удалось удалить пользователя по {id}: {ex.Message}");
             }
         }
+
         [HttpDelete("DeleteTable")]
         public async Task<ActionResult> DropTable()
         {
             try
             {
-                await _context.Database.ExecuteSqlRawAsync("DROP TABLE Users");
+                var result = _userService.DropTable();
+                if (result == null)
+                {
+                    throw new Exception("Ошибка при удалении таблицы");
+                }
                 return Ok("Таблица успешно удалена!");
             }
             catch (Exception ex)
@@ -211,18 +218,22 @@ namespace NewNLogWebApi.Controllers
                 return BadRequest($"Ошибка при удалении таблицы: {ex.Message}");
             }
         }
+
         [HttpDelete("DeleteAllRowsFromLogs")]
         public async Task<IActionResult> DeleteAllRowsFromLogs()
         {
             try
             {
-                string query = "Truncate table Logs";
-                await _context.Database.ExecuteSqlRawAsync(query);
+                var result = _userService.DeleteAllRowsFromLogs();
+                if (result == null)
+                {
+                    throw new Exception("Ошибка при удалении всех строк из таблицы");
+                }
                 return Ok("Все строки из таблицы успешно удалены!");
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Ошибка при удалении всех строк из таблицы: {ex.Message}");
+                _logger.LogError(ex.Message);
                 return BadRequest($"Ошибка при удалении всех строк из таблицы: {ex.Message}");
             }
         }
