@@ -59,12 +59,14 @@ namespace NewNLogWebApi.Service
 
         public async Task<string> ChangeNameWithPut(int id, string newName)
         {
-            var user = await _context.Users.FindAsync(id);
-
-            user.FirstName = newName;
-
             try
             {
+                var user = await _context.Users.FindAsync(id);
+                if (user is null)
+                {
+                    return null;
+                }
+                user.FirstName = newName;
                 await _context.SaveChangesAsync();
                 return "User name updated successfully!";
             }
@@ -80,7 +82,7 @@ namespace NewNLogWebApi.Service
             {
                 if (patchDoc == null)
                 {
-                    throw new ArgumentNullException(nameof(patchDoc));
+                    return null;
                 }
                 var user = await _context.Users.FindAsync(id);
 
@@ -103,7 +105,7 @@ namespace NewNLogWebApi.Service
                 string query = "Create table MyTable (id int PRIMARY KEY, name varchar(50))";
                 if (string.IsNullOrWhiteSpace(query))
                 {
-                    throw new ArgumentNullException(nameof(query));
+                    return null;
                 }
                 await _context.Database.ExecuteSqlRawAsync(query);
                 return "Таблица успешно создана!";
@@ -141,7 +143,7 @@ namespace NewNLogWebApi.Service
                 string query = "Truncate table Logs";
                 if (string.IsNullOrWhiteSpace(query))
                 {
-                    throw new ArgumentNullException(nameof(query));
+                    return null;
                 }
                 await _context.Database.ExecuteSqlRawAsync(query);
                 return "Все строки из таблицы успешно удалены!";
@@ -156,8 +158,16 @@ namespace NewNLogWebApi.Service
         {
             try
             {
-                await _context.Database.ExecuteSqlRawAsync("DROP TABLE MyTable");
-                return "Таблица успешно удалена!";
+                bool tableExists = await _context.Database.CanConnectAsync();
+                if (tableExists)
+                {
+                    await _context.Database.ExecuteSqlRawAsync("DROP TABLE MyTable");
+                    return "Таблица успешно удалена!";
+                }
+                else
+                {
+                    return "Таблица не существует в базе данных.";
+                }
             }
             catch (Exception ex)
             {

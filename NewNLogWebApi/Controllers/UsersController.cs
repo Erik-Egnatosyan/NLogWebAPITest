@@ -146,7 +146,7 @@ namespace NewNLogWebApi.Controllers
             try
             {
                 var result = await _userService.ChangeUserName(id, patchDoc);
-                if (result == null) 
+                if (result == null)
                 {
                     throw new Exception("Не удалось изменить имя ползователя!");
                 }
