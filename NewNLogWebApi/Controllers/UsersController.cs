@@ -121,7 +121,7 @@ namespace NewNLogWebApi.Controllers
         //-----------------------END-CREATE-----------------------
         //---------------------PUT-AND-PATCH----------------------
 
-        [HttpPut("ChangeInformation")]
+        [HttpPut("users/{id}/changenamePUT")]
         public async Task<IActionResult> ChangeNameWithPut(int id, string newName)
         {
             try
@@ -140,7 +140,7 @@ namespace NewNLogWebApi.Controllers
             }
         }
 
-        [HttpPatch("users/{id}/changename")]
+        [HttpPatch("users/{id}/changenamePATCH")]
         public async Task<IActionResult> ChangeUserName(int id, [FromBody] JsonPatchDocument<User> patchDoc)
         {
             try
