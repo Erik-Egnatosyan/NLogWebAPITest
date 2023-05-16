@@ -14,7 +14,38 @@ namespace NewNLogWebApi.Service
             _context = context;
         }
 
-        public async Task<string> AddUserWithData()
+        public async Task<User> AddUserWithDataAPI([FromBody] User user)
+        {
+            try
+            {
+                User userModel = CreateUserModel(user.FirstName, user.LastName, user.Email, user.Phone, user.Address, user.Age);
+                if (userModel is null)
+                {
+                    throw new ArgumentNullException(nameof(userModel), "User model cannot be null.");
+                }
+                _context.Users.Add(userModel);
+                await _context.SaveChangesAsync();
+                return userModel;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            User CreateUserModel(string FirstName, string LastName, string Email, string Phone, string Address, int Age)
+            {
+                return new User
+                {
+                    FirstName = FirstName,
+                    LastName = LastName,
+                    Email = Email,
+                    Phone = Phone,
+                    Address = Address,
+                    Age = Age
+                };
+            }
+        }
+
+        public async Task<string> AddUserWithDataCsharp()
         {
             try
             {

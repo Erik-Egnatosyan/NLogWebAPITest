@@ -99,12 +99,12 @@ namespace NewNLogWebApi.Controllers
             }
         }
 
-        [HttpPost("AddUsers")]
-        public async Task<ActionResult<string>> AddUserWithData()
+        [HttpPost("AddUsersC#")]
+        public async Task<ActionResult<string>> AddUserWithDataCsharp()
         {
             try
             {
-                var result = await _userService.AddUserWithData();
+                var result = await _userService.AddUserWithDataCsharp();
                 if (result == null)
                 {
                     throw new Exception("Ошибка при добовлении ползователья");
@@ -115,6 +115,25 @@ namespace NewNLogWebApi.Controllers
             {
                 _logger.LogError(ex.Message);
                 throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost("AddUsersAPI")]
+        public async Task<IActionResult> AddUserWithDataAPI([FromBody] User user)
+        {
+            try
+            {
+                var result = await _userService.AddUserWithDataAPI(user);
+                if (result is null)
+                {
+                    throw new Exception("Ошибка при добовлении ползователья");
+                }
+                return Ok($"Ползователь успешно добавлен \n{result}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return BadRequest("Error adding user.");
             }
         }
 

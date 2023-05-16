@@ -10,7 +10,8 @@ namespace NewNLogWebApi.Service
         Task<List<string>> GetAllNames();
         Task<double> AverageAge();
         Task<string> CreateTable();
-        Task<string> AddUserWithData();
+        Task<string> AddUserWithDataCsharp();
+        Task<User> AddUserWithDataAPI([FromBody] User user);
         Task<string> ChangeNameWithPut(int id, string newName);
         Task<string> ChangeUserName(int id, [FromBody] JsonPatchDocument<User> patchDoc);
         Task<User> Delete(int id);
