@@ -99,7 +99,7 @@ namespace NewNLogWebApi.Controllers
             }
         }
 
-        [HttpPost("AddUsersC#")]
+        [HttpPost("AddUserWithDataCsharp")]
         public async Task<ActionResult<string>> AddUserWithDataCsharp()
         {
             try
